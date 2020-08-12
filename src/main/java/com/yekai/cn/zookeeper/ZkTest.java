@@ -11,9 +11,9 @@ import java.util.concurrent.locks.Lock;
 
 
 public class ZkTest implements Runnable, Lock {
-    static int inventory = 10;
+    static int inventory = 5;
     private static final int NUM = 10;
-    private  CountDownLatch cdl = new CountDownLatch(1);
+    private CountDownLatch cdl = new CountDownLatch(1);
 
     private static final String IP_PORT = "127.0.0.1:2181";
     private static final String Z_NODE = "/LOCK01";
@@ -35,12 +35,17 @@ public class ZkTest implements Runnable, Lock {
 
     public void run() {
         try {
+
             new ZkTest().lock();
+            Thread.sleep(1000);
             if (inventory > 0) {
                 inventory--;
             }
+
             System.out.println(inventory);
-            return;
+            //return;
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         } finally {
             new ZkTest().unlock();
             System.out.println("释放锁");
@@ -49,7 +54,7 @@ public class ZkTest implements Runnable, Lock {
 
     public void lock() {
         // 尝试加锁
-        if(tryLock()){
+        if (tryLock()) {
             return;
         }
         // 进入等待 监听
@@ -62,7 +67,7 @@ public class ZkTest implements Runnable, Lock {
         try {
             zkClient.createPersistent(Z_NODE);
             return true;
-        }catch (ZkNodeExistsException e){
+        } catch (ZkNodeExistsException e) {
             return false;
         }
     }
@@ -71,7 +76,7 @@ public class ZkTest implements Runnable, Lock {
         zkClient.delete(Z_NODE);
     }
 
-    public void waitForLock(){
+    public void waitForLock() {
         System.out.println("加锁失败");
         IZkDataListener listener = new IZkDataListener() {
             public void handleDataChange(String s, Object o) throws Exception {
@@ -92,6 +97,7 @@ public class ZkTest implements Runnable, Lock {
                 e.printStackTrace();
             }
         }
+        System.out.println(listener);
         // 释放监听
         zkClient.unsubscribeDataChanges(Z_NODE, listener);
     }

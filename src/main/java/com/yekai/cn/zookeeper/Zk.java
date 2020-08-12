@@ -1,8 +1,8 @@
 package com.yekai.cn.zookeeper;
 
+import com.sun.deploy.util.StringUtils;
 import org.I0Itec.zkclient.IZkDataListener;
 import org.I0Itec.zkclient.ZkClient;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -61,7 +61,7 @@ public class Zk implements Lock {
             }
         }
         // 第一次就进来创建自己的临时节点
-        if (StringUtils.isBlank(path)) {
+        if (path==null) {
             path = zkClient.createEphemeralSequential(Z_NODE + "/", "lock");
         }
 
