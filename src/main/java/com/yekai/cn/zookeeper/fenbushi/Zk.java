@@ -1,4 +1,4 @@
-package com.yekai.cn.zookeeper;
+package com.yekai.cn.zookeeper.fenbushi;
 
 import com.sun.deploy.util.StringUtils;
 import org.I0Itec.zkclient.IZkDataListener;
@@ -25,8 +25,6 @@ public class Zk implements Lock {
     private AtomicInteger atomic = new AtomicInteger(0);
 
     private static ConcurrentHashMap<Thread, Integer> concurrentHashMap = new ConcurrentHashMap<Thread, Integer>();
-
-
     private ZkClient zkClient = new ZkClient(IP_PORT);
 
     public Zk() {
@@ -41,9 +39,7 @@ public class Zk implements Lock {
         } else {
             // 进入等待 监听
             waitForLock();
-
         }
-
     }
 
     public synchronized boolean tryLock() {
@@ -52,7 +48,7 @@ public class Zk implements Lock {
 //            atomic.incrementAndGet();
 //            return true;
 //        }
-
+        //可重入锁
         if (concurrentHashMap.contains(Thread.currentThread())) {
             Integer i = concurrentHashMap.get(Thread.currentThread());
             if (i > 0) {
@@ -60,7 +56,7 @@ public class Zk implements Lock {
                 return true;
             }
         }
-        // 第一次就进来创建自己的临时节点
+        // 第一次创建自己的临时节点
         if (path==null) {
             path = zkClient.createEphemeralSequential(Z_NODE + "/", "lock");
         }
@@ -71,7 +67,6 @@ public class Zk implements Lock {
 
         // 当前的是最小节点就返回加锁成功
         if (path.equals(Z_NODE + "/" + children.get(0))) {
-            System.out.println(" i am true");
             //可重入
             //atomic.incrementAndGet();
             concurrentHashMap.put(Thread.currentThread(), 1);
@@ -108,7 +103,7 @@ public class Zk implements Lock {
             }
 
             public void handleDataDeleted(String s) throws Exception {
-                System.out.println(Thread.currentThread().getName() + ":监听到节点删除事件！---------------------------");
+                System.out.println(Thread.currentThread().getName() + ":监听到节点删除");
                 //当为0的时候唤醒线程继续执行
                 cdl.countDown();
 
@@ -125,7 +120,6 @@ public class Zk implements Lock {
                 e.printStackTrace();
             }
         }
-        System.out.println(listener);
         // 释放监听
         zkClient.unsubscribeDataChanges(beforePath, listener);
         // 再次尝试

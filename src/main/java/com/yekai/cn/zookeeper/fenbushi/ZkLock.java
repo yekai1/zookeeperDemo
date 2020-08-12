@@ -1,7 +1,5 @@
-package com.yekai.cn.zookeeper;
+package com.yekai.cn.zookeeper.fenbushi;
 
-
-import java.util.concurrent.CountDownLatch;
 
 public class ZkLock {
     static int inventory = 1;
